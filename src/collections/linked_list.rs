@@ -1,5 +1,6 @@
 mod iterator;
 mod list;
-pub use self::iterator::*;
-pub use self::list::*;
+mod display;
+pub use iterator::*;
+pub use list::*;
 pub use super::macros::list;
