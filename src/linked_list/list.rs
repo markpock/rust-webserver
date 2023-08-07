@@ -4,13 +4,15 @@ use std::{cell::RefCell, rc::{Rc, Weak}};
 
 #[derive(Debug)]
 /// A doubly-linked list. Supports O(1) dequeue style operations and O(n)
-/// remove.
+/// remove. Elements must be cloneable.
 pub struct List<T: Clone> {
     len: usize,
     refs: ListState<T>
 }
 
 #[derive(Debug, Clone)]
+/// A small enum to capture that the list is either empty or has both a
+/// head and tail we should keep track of.
 enum ListState<T> {
     Empty, 
     Dequeue {hd: Rc<RefCell<Node<T>>>,
@@ -20,6 +22,7 @@ enum ListState<T> {
 use crate::linked_list::list::ListState::*;
 
 #[derive(Debug)]
+/// Our node class.
 struct Node<T> {
     data: T,
     nxt: Option<Rc<RefCell<Node<T>>>>,
@@ -27,10 +30,13 @@ struct Node<T> {
 }
 
 impl<T: Clone> List<T> {
+    /// Creates a new, empty list.
     pub fn new() -> Self { List {len: 0, refs: ListState::Empty} }
 
+    /// Returns the number of elements in this list.
     pub fn size(&self) -> usize { self.len }
 
+    /// Adds an element to the head of this list.
     pub fn push(&mut self, data: T) {
         match &mut self.refs {
             Empty => {
@@ -46,6 +52,7 @@ impl<T: Clone> List<T> {
         }
     }
 
+    /// Adds an element to the tail of this list.
     pub fn append(&mut self, data: T) {
         match &mut self.refs {
             Empty => self.push(data),
@@ -58,6 +65,8 @@ impl<T: Clone> List<T> {
         }
     }
 
+    /// Removes an element from the head of this list, returning the removed
+    /// element - or None if the list is empty.
     pub fn pop(&mut self) -> Option<T> {
         match &mut self.refs {
             Empty => None,
@@ -76,6 +85,8 @@ impl<T: Clone> List<T> {
         }
     }
 
+    /// Removes an element from the tail of this list, returning the removed
+    /// element - or None if the list is empty.
     pub fn slice(&mut self) -> Option<T> {
         match &mut self.refs {
             Empty => None,
@@ -93,7 +104,11 @@ impl<T: Clone> List<T> {
             }
         }
     }
-    
+
+    /// Removes the first element from the head of this list satisfying the
+    /// given predicate, or None if there exists no such element. O(n) linear
+    /// search - use with caution. Conversion to an iterator and filtering is
+    /// preferred if removing in batch.
     pub fn remove<F>(&mut self, pred: F) -> Option<T> where F: Fn(&T) -> bool {
         match self.refs.clone() {
             Empty => None,
