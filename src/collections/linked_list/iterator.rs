@@ -1,28 +1,38 @@
-use crate::linked_list::List;
+use std::{cell::RefCell, rc::Rc};
+
+use super::{List, Node};
+
 
 impl<T: Clone> FromIterator<T> for List<T> {
+    /// Creates a new list front-to-back from an iterator over raw items.
     fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = T> {
         let mut l = List::new();
         for i in iter {
-            l.push(i);
+            l.append(i);
         }
         l
     }
 }
 
-impl<T: Clone> List<T> {
-    // pub fn iter<'a, 'b : 'a>(&self) -> ListIter<'a, T> {
-    //     ListIter {iter: self.iter_mut()}
-    // }
-
-    // pub fn iter_mut<'a, 'b: 'a>(&'b self) -> ListIterMut<'a, T> {
-    //     match &self.refs {
-    //         Empty => ListIterMut { node: None },
-    //         Dequeue {hd, tl: _} => ListIterMut { node: Some(&hd) }
-    //     }
-    // }
+#[derive(Debug)]
+/// Clones items right out of a list.
+pub struct ListGenerator<'a, T: Clone> {
+    pub(super) list: &'a List<T>,
+    pub(super) node: Option<Rc<RefCell<Node<T>>>>
 }
 
+impl<'a, T: Clone> Iterator for ListGenerator<'a, T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.node.clone() {
+            None => None,
+            Some(node) => {
+                let result = node.borrow_mut().data.clone();
+                self.node = node.borrow_mut().nxt.clone();
+                Some(result)
+            }
+        }
+    }
 
 
 // #[derive(Debug)]
@@ -30,10 +40,8 @@ impl<T: Clone> List<T> {
 //     iter: ListIterMut<'a, T>
 // }
 
-// #[derive(Debug)]
-// pub struct ListIterMut<'a, T> {
-//     node: Option<&'a Rc<RefCell<Node<T>>>>,
-// }
+
+}
 
 // #[derive(Debug)]
 // pub struct ListConsumer<'a, T> {
@@ -111,5 +119,39 @@ impl<T: Clone> List<T> {
 //                 None
 //             }
 //         }
+//     }
+// }
+
+
+// impl<'a, T: Clone> ListGenerator<'a, T> {
+//     pub fn delete(&mut self) -> Option<T> {
+//         let fin = match self.node.clone() {
+//             None => None,
+//             Some(node) => {
+//                 let result = node.borrow_mut().data.clone();
+//                 match (node.borrow().nxt.clone(), node.borrow().prev.upgrade()) {
+//                     (Some(next), opt_prev) => {
+//                         self.node = Some(next.clone());
+//                         if let Some(prev) = opt_prev {
+//                             prev.borrow_mut().nxt = Some(next.clone());
+//                             next.borrow_mut().prev = Rc::downgrade(&prev);
+//                         } else {
+//                             next.borrow_mut().prev = Weak::new();
+//                         }
+//                     },
+//                     (None, Some(prev)) => {
+//                         prev.borrow_mut().nxt = None;
+//                         self.node = Some(prev);
+//                     }
+//                     (None, None) => self.node = None
+//                 }
+//                 Some(result)
+//             }
+//         };
+//         self.list.len -= 1;
+//         if self.list.len == 0 {
+//             self.list.refs = ListState::Empty;
+//         }
+//         fin
 //     }
 // }

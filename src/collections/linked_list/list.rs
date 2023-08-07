@@ -6,29 +6,31 @@ use std::{cell::RefCell, rc::{Rc, Weak}};
 /// A doubly-linked list. Supports O(1) dequeue style operations and O(n)
 /// remove. Elements must be cloneable.
 pub struct List<T: Clone> {
-    len: usize,
-    refs: ListState<T>
+    pub(super) len: usize,
+    pub(super) refs: ListState<T>
 }
 
 #[derive(Debug, Clone)]
 /// A small enum to capture that the list is either empty or has both a
 /// head and tail we should keep track of.
-enum ListState<T> {
+pub(super) enum ListState<T> {
     Empty, 
     Dequeue {hd: Rc<RefCell<Node<T>>>,
              tl: Rc<RefCell<Node<T>>>}
 }
 
-use crate::linked_list::list::ListState::*;
+use self::ListState::*;
+use super::ListGenerator;
 
 #[derive(Debug)]
 /// Our node class.
-struct Node<T> {
-    data: T,
-    nxt: Option<Rc<RefCell<Node<T>>>>,
-    prev: Weak<RefCell<Node<T>>> // Option not needed because all access through upgrade
+pub(super) struct Node<T> {
+    pub(super) data: T,
+    pub(super) nxt: Option<Rc<RefCell<Node<T>>>>,
+    pub(super) prev: Weak<RefCell<Node<T>>> // Option not needed because all access through upgrade
 }
 
+// Adder methods.
 impl<T: Clone> List<T> {
     /// Creates a new, empty list.
     pub fn new() -> Self { List {len: 0, refs: ListState::Empty} }
@@ -64,7 +66,10 @@ impl<T: Clone> List<T> {
             }
         }
     }
+}
 
+// Deleter methods.
+impl<T: Clone> List<T> {
     /// Removes an element from the head of this list, returning the removed
     /// element - or None if the list is empty.
     pub fn pop(&mut self) -> Option<T> {
@@ -127,5 +132,16 @@ impl<T: Clone> List<T> {
                 None
             }
         }
+    }
+}
+
+// Iterator methods.
+impl<T: Clone> List<T> {
+    pub(crate) fn generator(&self) -> ListGenerator<'_, T> {
+        let node = match self.refs.clone() {
+            Empty => None,
+            Dequeue{hd, tl: _} => Some(hd)
+        };
+        ListGenerator {list: self, node}
     }
 }
