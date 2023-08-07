@@ -1,6 +1,14 @@
 use std::{clone::Clone, hash::Hash};
 use crate::collections::linked_list::{List, ListGenerator};
 
+impl<K: Clone + Hash + PartialEq, V: Clone> FromIterator<(K, V)> for Map<K, V> {
+    fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = (K, V)> {
+        let mut m = Map::<K, V>::new();
+        for (k, v) in iter { m.insert(k, v); }
+        m
+    }
+}
+
 pub struct MapGenerator<'a, K: Clone + Hash + PartialEq, V: Clone> {
     pub(super) buckit: Box<std::slice::Iter<'a, List<(K, V)>>>,
     pub(super) listit: Option<Box<ListGenerator<'a, (K, V)>>>
@@ -25,7 +33,6 @@ impl<'a, K: Clone + Hash + PartialEq + 'a, V: Clone + 'a> Iterator for MapGenera
         } else { None }
     }
 }
-
 
 // /// Returns a mutable iterator over this Map. The iterator is in unsorted order.
 // pub fn iter_mut(&mut self) -> MapIterMut<'_, K, V> {

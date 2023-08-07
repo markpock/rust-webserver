@@ -110,10 +110,10 @@ impl<T: Clone> List<T> {
         }
     }
 
-    /// Removes the first element from the head of this list satisfying the
-    /// given predicate, or None if there exists no such element. O(n) linear
-    /// search - use with caution. Conversion to an iterator and filtering is
-    /// preferred if removing in batch.
+    /// Removes any element in this list satisfying the given predicate, or None
+    /// if there exists no such element. Not guaranteed to remove the first
+    /// such element. O(n) linear search - use with caution. Conversion to an
+    /// iterator and filtering is preferred if removing in batch.
     pub fn remove<F>(&mut self, pred: F) -> Option<T> where F: Fn(&T) -> bool {
         match self.refs.clone() {
             Empty => None,

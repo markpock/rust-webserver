@@ -50,11 +50,23 @@ fn adders_deleters() {
 fn remove() {
     let mut l = list!(1, 2, 3, 4, 5);
     println!("{}", l);
-    assert_eq!(l.remove(|&x| x > 3), Some(4));
+    assert!(l.remove(|&x| x >= 3).unwrap() >= 3);
+    assert_eq!(l.size(), 4);
+    assert_eq!(l.remove(|&x| x < 0), None);
+    assert_eq!(l.size(), 4);
 }
 
 #[test]
 fn generator() {
     let l = list!(1, 2, 3, 4, 5);
-    let g = l.generator();
+    let mut g = l.generator();
+    for i in 1..=5 {
+        assert_eq!(g.next(), Some(i));
+    }
+    assert_eq!(g.next(), None);
+    assert_eq!(g.next(), None);
+    let l2: List<i32> = l.generator().map(|x| x + 1).collect();
+    for (i, e) in (2..=6).zip(l2.generator()) {
+        assert_eq!(i, e);
+    }
 }

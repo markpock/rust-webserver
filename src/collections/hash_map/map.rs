@@ -107,13 +107,3 @@ impl<K: Clone + Hash + PartialEq, V: Clone> Map<K, V> {
         *self = map;
     }
 }
-
-impl<K: Clone + Hash + PartialEq, V: Clone> FromIterator<(K, V)> for Map<K, V> {
-    fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = (K, V)> {
-        let mut m = Map::<K, V>::new();
-        for (k, v) in iter {
-            m.insert(k, v);
-        }
-        m
-    }
-}
