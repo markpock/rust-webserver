@@ -13,7 +13,7 @@ impl<K: Display + Clone + Hash + PartialEq, V: Display + Clone> Display for Map<
         if let Err(x) = write!(f, "{{\n") { return Err(x) }
         for (i, (k, v)) in self.generator().enumerate() {
             if let Err(x) = write!(f, "  {} => {}", k, v) { return Err(x) }
-            if i != self.size() - 1 {
+            if i != (self.size() - 1) {
                 if let Err(x) = write!(f, ",\n") { return Err(x) }
             }
         }

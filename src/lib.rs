@@ -1,3 +1,4 @@
 #[cfg(test)]
-mod tests;
-mod collections;
+pub mod tests;
+pub mod collections;
+pub mod indexer;

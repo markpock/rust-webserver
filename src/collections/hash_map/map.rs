@@ -29,8 +29,9 @@ impl<K: Clone + Hash + PartialEq, V: Clone> Map<K, V> {
         if self.size as f64 / self.table.len() as f64 > 0.5 { self.resize() }
         let idx = self.idx(&key);
         let old = self.table[idx].remove(|x| x.0 == key);
+        if let None = old { self.size += 1 }
         self.table[idx].push((key, value));
-        self.size += 1;
+        
         if let Some((_, v)) = old { Some(v) } else { None }
     }
 
@@ -75,8 +76,6 @@ impl<K: Clone + Hash + PartialEq, V: Clone> Map<K, V> {
         }
         None
     }
-
-
 
     pub(crate) fn generator(&self) -> MapGenerator<'_, K, V> {
         let mut buckit = Box::new(self.table.iter());

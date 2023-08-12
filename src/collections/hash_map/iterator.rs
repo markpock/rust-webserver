@@ -1,5 +1,6 @@
 use std::{clone::Clone, hash::Hash};
 use crate::collections::linked_list::{List, ListGenerator};
+use crate::collections::hash_map::Map;
 
 impl<K: Clone + Hash + PartialEq, V: Clone> FromIterator<(K, V)> for Map<K, V> {
     fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = (K, V)> {

@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::{Rc, Weak}};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A doubly-linked list. Supports O(1) dequeue style operations and O(n)
 /// remove. Elements must be cloneable.
 pub struct List<T: Clone> {
@@ -22,7 +22,7 @@ pub(super) enum ListState<T> {
 use self::ListState::*;
 use super::ListGenerator;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Our node class.
 pub(super) struct Node<T> {
     pub(super) data: T,
