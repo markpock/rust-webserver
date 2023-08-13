@@ -1,38 +1,38 @@
-use std::{cell::RefCell, rc::Rc};
+// use std::{cell::RefCell, rc::Rc};
 
-use super::{List, Node};
+// use super::{List, Node};
 
 
-impl<T: Clone> FromIterator<T> for List<T> {
-    /// Creates a new list front-to-back from an iterator over raw items.
-    fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = T> {
-        let mut l = List::new();
-        for i in iter {
-            l.append(i);
-        }
-        l
-    }
-}
+// impl<T: Clone> FromIterator<T> for List<T> {
+//     /// Creates a new list front-to-back from an iterator over raw items.
+//     fn from_iter<A>(iter: A) -> Self where A: IntoIterator<Item = T> {
+//         let mut l = List::new();
+//         for i in iter {
+//             l.append(i);
+//         }
+//         l
+//     }
+// }
 
-#[derive(Debug)]
-/// Clones items right out of a list.
-pub struct ListGenerator<'a, T: Clone> {
-    pub(super) list: &'a List<T>,
-    pub(super) node: Option<Rc<RefCell<Node<T>>>>
-}
+// #[derive(Debug)]
+// /// Clones items right out of a list.
+// pub struct ListGenerator<'a, T: Clone> {
+//     pub(super) list: &'a List<T>,
+//     pub(super) node: Option<Rc<RefCell<Node<T>>>>
+// }
 
-impl<'a, T: Clone> Iterator for ListGenerator<'a, T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.node.clone() {
-            None => None,
-            Some(node) => {
-                let result = node.borrow_mut().data.clone();
-                self.node = node.borrow_mut().nxt.clone();
-                Some(result)
-            }
-        }
-    }
+// impl<'a, T: Clone> Iterator for ListGenerator<'a, T> {
+//     type Item = T;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         match self.node.clone() {
+//             None => None,
+//             Some(node) => {
+//                 let result = node.borrow_mut().data.clone();
+//                 self.node = node.borrow_mut().nxt.clone();
+//                 Some(result)
+//             }
+//         }
+//     }
 
 
 // #[derive(Debug)]
@@ -41,7 +41,7 @@ impl<'a, T: Clone> Iterator for ListGenerator<'a, T> {
 // }
 
 
-}
+//}
 
 // #[derive(Debug)]
 // pub struct ListConsumer<'a, T> {
