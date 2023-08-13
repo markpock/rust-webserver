@@ -1,13 +1,13 @@
 use crate::collections::linked_list::*;
 
-// #[test]
-// fn macro_init() {
-//     let empty: List<i32> = list!();
-//     assert_eq!(empty.size(), 0);
+#[test]
+fn macro_init() {
+    let empty: List<i32> = list!();
+    assert_eq!(empty.size(), 0);
 
-//     let elts = list!(1, 2, 3, 4, 5);
-//     assert_eq!(elts.size(), 5);
-// }
+    let elts = list!(1, 2, 3, 4, 5);
+    assert_eq!(elts.size(), 5);
+}
 
 #[test]
 fn adders_deleters() {
@@ -46,15 +46,14 @@ fn adders_deleters() {
     assert_eq!(l.slice(), None);
 }
 
-// #[test]
-// fn remove() {
-//     let mut l = list!(1, 2, 3, 4, 5);
-//     println!("{}", l);
-//     assert!(l.remove(|&x| x >= 3).unwrap() >= 3);
-//     assert_eq!(l.size(), 4);
-//     assert_eq!(l.remove(|&x| x < 0), None);
-//     assert_eq!(l.size(), 4);
-// }
+#[test]
+fn remove() {
+    let mut l = list!(1, 2, 3, 4, 5);
+    assert!(l.remove(|&x| x >= 3).unwrap() >= 3);
+    assert_eq!(l.size(), 4);
+    assert_eq!(l.remove(|&x| x < 0), None);
+    assert_eq!(l.size(), 4);
+}
 
 // #[test]
 // fn generator() {

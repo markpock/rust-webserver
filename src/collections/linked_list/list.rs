@@ -55,7 +55,9 @@ impl<T: std::fmt::Debug> List<T> {
     /// Returns the number of elements in this list.
     pub fn size(&self) -> usize { self.len }
 
-    /// Adds an element to the head of this list.
+    /// Adds an element to the head of this list. Note that this list takes
+    /// ownership of data. Any references to data may result in undefined
+    /// behavior when removing.
     pub fn push(&mut self, data: T) {
         // Borrow self.state
         match &self.state {
@@ -82,6 +84,9 @@ impl<T: std::fmt::Debug> List<T> {
         self.len += 1
     }
 
+    /// Adds an element to the back of this list. Note that this list takes
+    /// ownership of data. Any references to data may result in undefined
+    /// behavior when removing.
     pub fn append(&mut self, data: T) {
         match &self.state {
             // Borrow should end inside each match case
@@ -102,6 +107,9 @@ impl<T: std::fmt::Debug> List<T> {
         }
     }
 
+    /// Removes an element from the head of this list. Undefined behavior
+    /// when there exist references outside the list to this element (e.g.
+    /// all iterators should be dropped before modifying).
     pub fn pop(&mut self) -> Option<T> {
         match (&self.len, &self.state) {
             (_, Empty) => None,
@@ -112,20 +120,22 @@ impl<T: std::fmt::Debug> List<T> {
                 Some(Node::unwrap(stored).data)
             }
             (_, Dequeue {hd, tl}) => {
-                let (stored_hd, stored_tl) = (hd.clone(), tl.clone());
+                let stored_hd = hd.clone();
+                let stored_tl = tl.clone();
                 self.state = Empty;
                 self.len -= 1;
                 let old = Node::unwrap(stored_hd);
-                if let Some(new_head) = old.nxt {
-                    self.state = Dequeue { hd: new_head, tl: stored_tl }
-                } else {
-                    panic!();
-                }
+                let new_head =  old.nxt.unwrap();
+                new_head.borrow_mut().prev = Weak::new();
+                self.state = Dequeue { hd: new_head, tl: stored_tl };
                 Some(old.data)
             }
         }
     }
 
+    /// Removes an element from the tail of this list. Undefined behavior
+    /// when there exist references outside the list to this element (e.g.
+    /// all iterators should be dropped before modifying).
     pub fn slice(&mut self) -> Option<T> {
         match (&self.len, &self.state) {
             (_, Empty) => None,
@@ -139,12 +149,16 @@ impl<T: std::fmt::Debug> List<T> {
                 let stored_hd = hd.clone();
 
                 // prev is the 2nd to last
+                // We're guaranteed unwrap works here because we have >1 length
+                // so tl must have a prev node
                 let prev = tl.clone().borrow_mut().prev.upgrade().unwrap();
 
                 // Drop hd, tl
                 self.state = Empty;   
                 
                 // Now count of refs to tl is 2
+                // Guaranteed unwrap works because prev has to have a nxt - we got it through said
+                // nxt, after all
                 let ref_tl = prev.borrow().nxt.clone().unwrap();
                 // Drop ref to tl from prev
                 prev.borrow_mut().nxt = None;
@@ -155,6 +169,51 @@ impl<T: std::fmt::Debug> List<T> {
                 self.len -= 1;
 
                 Some(Node::unwrap(ref_tl).data)
+            }
+        }
+    }
+
+    /// Removes an element in this list satisfying a predicate on
+    /// a reference to the element type. Indeterminate which element this
+    /// is.
+    pub fn remove<F>(&mut self, pred: F) -> Option<T>
+        where F: Fn(&T) -> bool {
+        self.remove_with_idx(|_, t| pred(t))
+    }
+
+    /// Removes element i of this list (0-indexed).
+    pub fn remove_at<F>(&mut self, i: usize) -> Option<T> {
+        self.remove_with_idx(|idx, _| i == idx)
+    }
+
+    /// Removes an element in this list satisfying a predicate on the index
+    /// and a reference to the element type. Indeterminate which element this
+    /// is.
+    pub fn remove_with_idx<F>(&mut self, pred: F) -> Option<T>
+        where F: Fn(usize, &T) -> bool {
+        match &self.state {
+            Empty => None,
+            Dequeue { hd, tl } => {
+                if pred(0, &hd.borrow().data) { return self.pop() }
+                if pred(self.size() - 1, &tl.borrow().data) { return self.slice() }
+                if self.size() < 3 { return None }
+                // We guarantee that head has a next and that it is not the tail
+                // of the list.
+                let mut curr = hd.borrow_mut().nxt.clone().unwrap();
+                for i in 1..=(self.size() - 2) {
+                    if !(pred(i, &curr.borrow().data)) { 
+                        let nxt = curr.borrow().nxt.clone();
+                        curr = nxt.unwrap();
+                        continue;
+                    }
+                    let stored = curr.clone();
+                    let prev = curr.borrow().prev.upgrade().unwrap();
+                    let nxt = curr.borrow().nxt.clone().unwrap();
+                    prev.borrow_mut().nxt = Some(nxt.clone());
+                    nxt.borrow_mut().prev = Rc::downgrade(&prev);
+                    return Some(Node::unwrap(stored).data)
+                }
+                None
             }
         }
     }
