@@ -48,7 +48,7 @@ impl<T> Node<T> {
 }
 
 // Adder methods.
-impl<T: std::fmt::Debug> List<T> {
+impl<T> List<T> {
     /// Creates a new, empty list.
     pub fn new() -> Self { List {len: 0, state: ListState::Empty} }
 
