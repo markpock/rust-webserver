@@ -100,9 +100,10 @@ impl<T: std::fmt::Debug> List<T> {
                 
                 stored_tl.borrow_mut().nxt = Some(new_tl.clone());
                 new_tl.borrow_mut().prev = Rc::downgrade(&stored_tl);
-                self.state = Dequeue { hd: stored_hd, tl: new_tl };
 
-                self.len += 1
+                // Don't need to do this in the push case
+                self.len += 1;
+                self.state = Dequeue { hd: stored_hd, tl: new_tl }
             }
         }
     }
@@ -120,15 +121,25 @@ impl<T: std::fmt::Debug> List<T> {
                 Some(Node::unwrap(stored).data)
             }
             (_, Dequeue {hd, tl}) => {
+                // Save necessary info
                 let stored_hd = hd.clone();
                 let stored_tl = tl.clone();
+
+                // Drop hd, tl
                 self.state = Empty;
-                self.len -= 1;
-                let old = Node::unwrap(stored_hd);
-                let new_head =  old.nxt.unwrap();
+
+                // Now, ref count to old head should be 1
+                let old_head = Node::unwrap(stored_hd);
+                
+                // Get new head, set links appropriately
+                let new_head = old_head.nxt.unwrap();
                 new_head.borrow_mut().prev = Weak::new();
+
+                // Restore state
+                self.len -= 1;
                 self.state = Dequeue { hd: new_head, tl: stored_tl };
-                Some(old.data)
+
+                Some(old_head.data)
             }
         }
     }
@@ -165,8 +176,8 @@ impl<T: std::fmt::Debug> List<T> {
                 // tl should now have no references besides ref_tl!
 
                 // Reset state and modify len
-                self.state = Dequeue { hd: stored_hd, tl: prev };
                 self.len -= 1;
+                self.state = Dequeue { hd: stored_hd, tl: prev };
 
                 Some(Node::unwrap(ref_tl).data)
             }
