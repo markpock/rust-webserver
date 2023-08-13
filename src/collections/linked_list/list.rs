@@ -186,7 +186,8 @@ impl<T: std::fmt::Debug> List<T> {
 
     /// Removes an element in this list satisfying a predicate on
     /// a reference to the element type. Indeterminate which element this
-    /// is.
+    /// is. Undefined behavior when there exist references outside the
+    /// list to elements (e.g. all iterators should be dropped before modifying).
     pub fn remove<F>(&mut self, pred: F) -> Option<T>
         where F: Fn(&T) -> bool {
         self.remove_with_idx(|_, t| pred(t))
@@ -199,8 +200,9 @@ impl<T: std::fmt::Debug> List<T> {
 
     /// Removes an element in this list satisfying a predicate on the index
     /// and a reference to the element type. Indeterminate which element this
-    /// is.
-    pub fn remove_with_idx<F>(&mut self, pred: F) -> Option<T>
+    /// is. Undefined behavior when there exist references outside the
+    /// list to elements (e.g. all iterators should be dropped before modifying).
+    fn remove_with_idx<F>(&mut self, pred: F) -> Option<T>
         where F: Fn(usize, &T) -> bool {
         match &self.state {
             Empty => None,
